@@ -13,6 +13,7 @@ chat:
       - "http://localhost:3000"              # Dev frontend
       - "http://localhost:5173"              # Vite dev
       - "http://localhost:8000"              # Same-origin
+      - "http://52.221.45.223:1111"          # Remote frontend
 
     # Validate header Origin/Referer (chặn request từ domain lạ)
     enforce_origin: true
