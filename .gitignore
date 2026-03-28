@@ -6,7 +6,7 @@
 venv/
 env/
 ENV/
-chunk_Process/chunk_algorithms/*
+# Ignore chunk process temp files if necessary, but DO NOT ignore python source code
 # Python
 __pycache__/
 *.py[cod]
