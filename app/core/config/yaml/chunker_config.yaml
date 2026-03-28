@@ -1,0 +1,146 @@
+# ============================================================
+# CHUNKER CONFIG (Non-sensitive settings)
+# File này chứa config cho Semantic Chunker & Hierarchical Chunker
+# API key lấy từ env: OPENROUTER_API_KEY, GROQ_API_KEY
+#
+# 🔍 REVIEW LOG:
+#   - 2026-03-19: Tối ưu thông số dựa trên data thực tế UFM.
+#     Xem giải thích chi tiết cho từng thông số bên dưới.
+# ============================================================
+
+# ----------------------------------------------------------
+# SEMANTIC CHUNKER — Embedding-based chunking
+# Chịu trách nhiệm tạo CHILD CHUNKS từ nội dung Parent
+# ----------------------------------------------------------
+semantic_chunker:
+  # Provider: openrouter | groq
+  provider: "openrouter"
+  base_url: "https://openrouter.ai/api/v1"
+  model: "baai/bge-m3"
+  dimensions: 1024
+
+  # ── NGƯỠNG SIMILARITY ──────────────────────────────────
+  # Cosine Similarity < threshold → CẮT tại điểm đó.
+  #
+  # ❓ Tại sao 0.57?
+  #    Văn bản tuyển sinh UFM có cấu trúc tương đối đồng nhất
+  #    (cùng chủ đề "điều kiện", "hồ sơ", "lệ phí"...).
+  #    Với threshold 0.6 → nhiều đoạn bị gộp thành 1 chunk lớn
+  #    vì similarity quá cao. 0.57 cân bằng giữa tách chi tiết
+  #    và giữ ngữ cảnh liên kết.
+  #
+  #    Khoảng tham chiếu:
+  #      0.45-0.50: Cắt rất mạnh → chunks cực nhỏ
+  #      0.55-0.60: Cân bằng → phù hợp văn bản tuyển sinh
+  #      0.65-0.75: Cắt nhẹ → chunks lớn, ít chi tiết
+  similarity_threshold: 0.57
+
+  # ── OVERLAP ─────────────────────────────────────────────
+  # Token overlap giữa 2 child chunks liền kề.
+  # Tạo "cầu nối" ngữ cảnh: cuối chunk N = đầu chunk N+1.
+  #
+  # ❓ Tại sao 120?
+  #    Child chunks ~200-400 tokens. 120/400 = 30% overlap —
+  #    đủ giữ ngữ cảnh liên kết chặt chẽ cho văn bản tuyển sinh
+  #    nhiều mệnh đề liên tiếp (điều kiện, hồ sơ, lệ phí).
+  overlap_tokens: 120
+
+  # ── BASE BLOCK ──────────────────────────────────────────
+  # Kích thước 1 đơn vị nhỏ nhất (block) trước khi so sánh Embedding.
+  # Nhỏ hơn → granular hơn nhưng tốn nhiều API calls.
+  #
+  # ❓ Tại sao giữ 100?
+  #    100 tokens ≈ 2-3 câu tiếng Việt. Đủ mang 1 ý nghĩa hoàn chỉnh
+  #    để Cosine Similarity nhận biết được sự chuyển đổi chủ đề.
+  #    Nhỏ hơn 60 → noise nhiều, similarity dao động vô nghĩa.
+  base_block_tokens: 100
+
+  # ── CHUNK SIZE BOUNDS ────────────────────────────────────
+  # min: Chunk < 70 tokens → gộp vào chunk liền kề (quá nhỏ = vô nghĩa)
+  # max: Giới hạn cứng để RAG context window không bị phình.
+  #
+  # ❓ Tại sao max nâng từ 1500 → 800?
+  #    Child chunks phục vụ VECTOR SEARCH — cần compact, semantic-dense.
+  #    1500 tokens ≈ 5000 chars → quá dài cho 1 child, LLM khó focus.
+  #    800 tokens ≈ 2500 chars → vừa đủ chứa 1 đoạn ý hoàn chỉnh.
+  #    (Parent chunk mới là nơi chứa ngữ cảnh rộng 2000 tokens)
+  min_chunk_tokens: 70
+  max_chunk_tokens: 800
+
+  # ── API TUNING ──────────────────────────────────────────
+  max_tokens_per_api_call: 6500     # BGE-M3 input limit là 8192, giữ buffer
+  api_batch_size: 40                # 50 → 40 để giảm risk timeout
+  api_timeout: 45                   # 30s → 45s phòng network Việt Nam chậm
+  api_max_retries: 3                # 3 lần retry đủ cho transient errors
+  api_retry_base_wait: 2            # Exponential: 2s → 4s → 8s
+
+# ----------------------------------------------------------
+# Cấu hình dự phòng cho Groq (uncomment để dùng)
+# ----------------------------------------------------------
+# semantic_chunker:
+#   provider: "groq"
+#   base_url: "https://api.groq.com/openai/v1"
+#   model: ""
+#   dimensions: 1024
+#   similarity_threshold: 0.55
+#   overlap_tokens: 80
+#   base_block_tokens: 100
+#   min_chunk_tokens: 50
+#   max_chunk_tokens: 800
+#   max_tokens_per_api_call: 6500
+#   api_batch_size: 40
+#   api_timeout: 45
+#   api_max_retries: 3
+#   api_retry_base_wait: 2
+
+# ----------------------------------------------------------
+# HIERARCHICAL CHUNKER — Cấu trúc phân cấp heading
+# Chịu trách nhiệm tạo PARENT CHUNKS theo cấu trúc Markdown
+# ----------------------------------------------------------
+hierarchical_chunker:
+  # ── PARENT SIZE BOUNDS ──────────────────────────────────
+  # Parent chunk = đơn vị ngữ cảnh rộng.
+  # Khi RAG trúng Child → lôi Parent ra đưa cho LLM đọc.
+  #
+  # min: Section < 100 tokens → gộp vào section kế (quá nhỏ)
+  # max: Parent > 2000 tokens → dùng _create_parent_chunk_with_split
+  #
+  # ❓ Tại sao max giữ 2000?
+  #    LLM context window hiện tại rất lớn (128K+), nhưng RAG
+  #    thường truyền 3-5 chunks. 2000 * 5 = 10K tokens = hợp lý.
+  #    Quá lớn → LLM xao nhãng, chất lượng trả lời giảm.
+  min_parent_tokens: 80
+  max_parent_tokens: 2000
+
+  # ── MERGE THRESHOLD ─────────────────────────────────────
+  # Section có nội dung < threshold tokens → gộp vào section liền kề.
+  # Tránh tạo chunks vô nghĩa kiểu chỉ có 1 dòng tiêu đề.
+  #
+  # ❓ Tại sao 30 thay vì 20?
+  #    Dữ liệu UFM có nhiều section ngắn (heading + 1 dòng mô tả).
+  #    20 tokens ≈ 70 chars → vẫn cho phép tạo chunk với nội dung
+  #    quá ít. 30 tokens ≈ 105 chars → gộp tốt hơn, chunks ý nghĩa hơn.
+  merge_threshold_tokens: 30
+
+  # ── TOKEN ESTIMATION ────────────────────────────────────
+  # Hệ số chars/token khi cần ước tính nhanh.
+  # Tiếng Việt có dấu → BPE tokenizer tách mạnh hơn tiếng Anh.
+  #
+  # ❓ Tại sao 3.0 thay vì 3.5?
+  #    Phân tích data thực tế cho thấy tiếng Việt với BGE-M3
+  #    tokenizer trung bình khoảng 2.5-3.2 chars/token.
+  #    3.5 là quá lạc quan → ước tính thấp hơn thực tế → chunks bị quá dài.
+  #    3.0 an toàn hơn (conservative), chunks hơi ngắn hơn nhưng
+  #    chặt chẽ về token budget.
+  chars_per_token: 3.0
+
+  # ── CẤU TRÚC ────────────────────────────────────────────
+  max_heading_depth: 4              # Parse đến #### (H4), sâu hơn = noise
+  context_prefix: true              # Gắn [Nguồn: ...] [Mục: ...] vào đầu chunk
+
+  # ── CHILD CONFIG (kế thừa từ semantic_chunker) ──────────
+  # Khi gọi chunk_with_semantic(), các giá trị này từ semantic_chunker
+  # sẽ được dùng cho Child chunks. Giá trị ở đây chỉ là tham khảo.
+  min_child_tokens: 70              # = semantic_chunker.min_chunk_tokens
+  max_child_tokens: 800             # = semantic_chunker.max_chunk_tokens
+  overlap_tokens: 120               # = semantic_chunker.overlap_tokens

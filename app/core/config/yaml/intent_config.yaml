@@ -1,0 +1,59 @@
+# ============================================================
+# INTENT CLASSIFICATION CONFIG — Chỉ chứa Logic Routing (phi-Model)
+# File: app/core/config/yaml/intent_config.yaml
+#
+# ⚠️ Model configs (vector_router, semantic_router) → models_config.yaml
+# ⚠️ System prompts → prompts_config.yaml
+# ⚠️ Fallback messages → prompts_config.yaml
+# ⚠️ File này CHỈ còn: allowed_intents, intent_validator, enabled flags
+# ============================================================
+
+# ----------------------------------------------------------
+# LỚP 3.1: Vector Intent Router — enabled flag
+# (Model config → models_config.yaml section vector_router)
+# ----------------------------------------------------------
+vector_router:
+  enabled: true
+
+# ----------------------------------------------------------
+# LỚP 3 - Validator: Chống LLM sai chính tả Intent
+# ----------------------------------------------------------
+intent_validator:
+  enabled: true
+  fallback_intent: "KHONG_XAC_DINH"
+
+# ----------------------------------------------------------
+# LỚP 3.2: Semantic Router — Danh sách Intent hợp lệ
+# (Model config → models_config.yaml section semantic_router)
+# ----------------------------------------------------------
+semantic_router:
+  allowed_intents:
+    # --- NHÓM 1: THÔNG TIN CỐT LÕI (Bắt buộc gọi RAG) ---
+    - "THONG_TIN_CHUNG"
+    - "THONG_TIN_TUYEN_SINH"
+    - "CHUONG_TRINH_DAO_TAO"
+    - "HOC_PHI_HOC_BONG"
+    - "THU_TUC_HANH_CHINH"
+
+    # --- NHÓM 1.5: YÊU CẦU MẪU ĐƠN (→ FormAgent) ---
+    - "TAO_MAU_DON"
+
+    # --- NHÓM 2: TRUYỀN THÔNG & THƯƠNG HIỆU ---
+    - "THANH_TICH_UFM"
+    - "DOI_SONG_SINH_VIEN"
+    - "SO_SANH_TRUONG"
+    - "CO_HOI_VIEC_LAM"
+
+    # --- NHÓM 3: CHĂM SÓC & HỖ TRỢ SINH VIÊN ---
+    - "HO_TRO_SINH_VIEN"
+    - "KHIEU_NAI_GOP_Y"
+
+    # --- NHÓM 4: BẢO VỆ HỆ THỐNG ---
+    - "BOI_NHO_DOI_THU"
+    - "DOI_HOI_CAM_KET"
+    - "TAN_CONG_HE_THONG"
+    - "CAU_HOI_LAC_DE"
+
+    # --- NHÓM 5: GIAO TIẾP & NGOẠI LỆ ---
+    - "CHAO_HOI"
+    - "KHONG_XAC_DINH"

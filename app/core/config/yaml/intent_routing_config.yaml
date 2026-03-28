@@ -1,0 +1,49 @@
+# ============================================================
+# INTENT ROUTING CONFIG — Action mapping & Thresholds (phi-Prompt)
+# File: app/core/config/yaml/intent_routing_config.yaml
+#
+# ⚠️ Response templates (GREET/CLARIFY) → prompts_config.yaml
+# ⚠️ File này CHỈ còn: thresholds, intent_actions mapping
+# ============================================================
+
+# ----------------------------------------------------------
+# EDGE CASE PRE-CHECK (trước khi gọi Qwen — miễn phí)
+# ----------------------------------------------------------
+thresholds:
+  min_query_length: 5       # Câu < 5 ký tự → CHAO_HOI ngay
+
+# ----------------------------------------------------------
+# INTENT → ACTION MAPPING
+# ----------------------------------------------------------
+intent_actions:
+  # --- NHÓM 1a: RAG thuần (tất cả dùng DB nội bộ) ---
+  HOC_PHI_HOC_BONG:      "PROCEED_RAG"
+  THU_TUC_HANH_CHINH:    "PROCEED_RAG"
+
+  # --- NHÓM 1b: RAG (trước đây là Web UFM Search, nay chuyển RAG thuần) ---
+  THONG_TIN_CHUNG:       "PROCEED_RAG"
+  THONG_TIN_TUYEN_SINH:  "PROCEED_RAG"
+  CHUONG_TRINH_DAO_TAO:  "PROCEED_RAG"
+  DOI_SONG_SINH_VIEN:    "PROCEED_RAG"
+
+  # --- NHÓM 1.5: Form Agent ---
+  TAO_MAU_DON:           "PROCEED_FORM"
+
+  # --- NHÓM 2: PR & Brand (trước đây Web Search, nay chuyển RAG thuần) ---
+  THANH_TICH_UFM:        "PROCEED_RAG"
+  SO_SANH_TRUONG:        "PROCEED_RAG"
+  CO_HOI_VIEC_LAM:       "PROCEED_RAG"
+
+  # --- NHÓM 3: Care Agent ---
+  HO_TRO_SINH_VIEN:      "PROCEED_CARE"
+  KHIEU_NAI_GOP_Y:       "PROCEED_CARE"
+
+  # --- NHÓM 5: Soft Responses ---
+  CHAO_HOI:              "GREET"
+  KHONG_XAC_DINH:        "CLARIFY"
+
+  # --- NHÓM 4: Block ---
+  BOI_NHO_DOI_THU:       "BLOCK_FALLBACK"
+  DOI_HOI_CAM_KET:       "BLOCK_FALLBACK"
+  TAN_CONG_HE_THONG:     "BLOCK_FALLBACK"
+  CAU_HOI_LAC_DE:        "BLOCK_FALLBACK"

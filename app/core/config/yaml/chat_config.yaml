@@ -1,0 +1,32 @@
+# ============================================================
+# CHAT API CONFIG — Cấu hình endpoint Chat (Public, Domain-Locked)
+# ============================================================
+
+chat:
+  # ── Bảo mật: Chỉ cho phép request từ domain của bạn ──
+  security:
+    # Danh sách domain được phép gọi API chat
+    # Frontend chạy trên domain nào → thêm vào đây
+    allowed_origins:
+      - "https://ufm-admission.vercel.app"
+      - "https://tuyensinh.ufm.edu.vn"
+      - "http://localhost:3000"              # Dev frontend
+      - "http://localhost:5173"              # Vite dev
+      - "http://localhost:8000"              # Same-origin
+
+    # Validate header Origin/Referer (chặn request từ domain lạ)
+    enforce_origin: true
+
+  # ── Rate Limiting (IP-based, ko cần đăng nhập) ──
+  rate_limit:
+    max_messages_per_minute: 10               # Tối đa 10 tin/phút/IP
+    max_messages_per_hour: 140               # Tối đa 140 tin/giờ/IP
+
+  # ── Chat History ──
+  history:
+    max_history_messages: 15                 # Giữ tối đa 15 tin gần nhất
+    max_query_length: 2000                   # Câu hỏi tối đa 2000 ký tự
+
+  # ── Pipeline ──
+  pipeline:
+    timeout_seconds: 60                      # Timeout toàn pipeline

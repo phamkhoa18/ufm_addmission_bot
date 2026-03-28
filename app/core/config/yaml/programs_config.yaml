@@ -1,0 +1,129 @@
+# ============================================================
+# PROGRAMS CONFIG — Danh sách ngành & bậc đào tạo
+# Admin chỉ cần sửa file này để thêm/xóa/đổi ngành
+# Không cần sửa code Python
+# ============================================================
+
+# ── Bậc đào tạo (program_level) ──
+# Thứ tự ưu tiên: tien_si > thac_si > dai_hoc
+# (Check tiến sĩ trước vì "tiến sĩ" chứa "sĩ")
+program_levels:
+  tien_si:
+    - "ti[eế]n\\s*s[iĩỹ]"           # tiến sĩ, tiến sỹ
+    - "nghiên\\s*cứu\\s*sinh"        # nghiên cứu sinh
+    - "\\bncs\\b"                     # NCS
+    - "\\bts\\b(?!\\s*\\d)"           # TS (không phải timestamp)
+    - "trình\\s*độ\\s*ti[eế]n"       # trình độ tiến sĩ
+    - "đào\\s*tạo\\s*ti[eế]n"        # đào tạo tiến sĩ
+    - "h[oọ]c\\s*v[iị]\\s*ti[eế]n"   # học vị tiến sĩ
+
+  thac_si:
+    - "th[aạ]c\\s*s[iĩỹ]"           # thạc sĩ, thạc sỹ
+    - "cao\\s*h[oọ]c"               # cao học
+    - "\\bths\\b"                    # ThS
+    - "trình\\s*độ\\s*th[aạ]c"       # trình độ thạc sĩ
+    - "đào\\s*tạo\\s*th[aạ]c"        # đào tạo thạc sĩ
+    - "ch[uư][oơ]ng\\s*trình\\s*th[aạ]c"  # chương trình thạc sĩ
+
+  dai_hoc:
+    - "đ[aạ]i\\s*h[oọ]c"            # đại học
+    - "c[uử]\\s*nhân"               # cử nhân
+    - "k[ỹy]\\s*sư"
+    - "\\bđh\\b"                     # ĐH
+    - "h[eệ]\\s*chính\\s*quy"       # hệ chính quy
+    - "chính\\s*quy"                 # chính quy
+    - "trình\\s*độ\\s*đ[aạ]i"        # trình độ đại học
+
+
+# ── Ngành đào tạo (program_name) ──
+# canonical_name: tên chuẩn (khớp DB)
+# keywords: danh sách regex patterns (IGNORECASE)
+# Thêm ngành mới: copy 1 block, đổi tên + keywords
+program_names:
+  - name: "Quản Trị Kinh Doanh"
+    keywords:
+      - "qt\\s*kd"
+      - "quản\\s*trị\\s*kinh\\s*doanh"
+
+  - name: "Kinh Doanh Quốc Tế"
+    keywords:
+      - "kdqt"
+      - "kinh\\s*doanh\\s*quốc\\s*tế"
+      - "kinh\\s*doanh\\s*quoc\\s*te"
+
+  - name: "Marketing"
+    keywords:
+      - "\\bmarketing\\b"
+      - "\\bmkt\\b"
+      - "tiếp\\s*thị"
+
+  - name: "Tài Chính Ngân Hàng"
+    keywords:
+      - "tài\\s*chính\\s*ngân\\s*hàng"
+      - "tài\\s*chính"
+      - "tc\\s*nh"
+      - "ngân\\s*hàng"
+
+  - name: "Kế Toán"
+    keywords:
+      - "kế\\s*toán"
+      - "ke\\s*toan"
+
+  - name: "Kiểm Toán"
+    keywords:
+      - "kiểm\\s*toán"
+      - "kiem\\s*toan"
+
+  - name: "Luật Kinh Tế"
+    keywords:
+      - "luật\\s*kinh\\s*tế"
+      - "luật"
+      - "luat"
+
+  - name: "Kinh Tế"
+    keywords:
+      - "\\bkinh\\s*tế\\b(?!\\s*lượng)"
+
+  - name: "Kinh Tế Quốc Tế"
+    keywords:
+      - "kinh\\s*tế\\s*quốc\\s*tế"
+      - "ktqt"
+
+  - name: "Quản Trị Nhân Lực"
+    keywords:
+      - "quản\\s*trị\\s*nhân\\s*lực"
+      - "nhân\\s*sự"
+      - "qtns"
+      - "qtnl"
+
+  - name: "Hệ Thống Thông Tin Quản Lý"
+    keywords:
+      - "hệ\\s*thống\\s*thông\\s*tin"
+      - "htttql"
+      - "\\bmis\\b"
+
+  - name: "Thương Mại Điện Tử"
+    keywords:
+      - "thương\\s*mại\\s*điện\\s*tử"
+      - "tmđt"
+      - "tmdt"
+      - "e-?commerce"
+
+  - name: "Logistics"
+    keywords:
+      - "logistics"
+      - "chuỗi\\s*cung\\s*ứng"
+      - "supply\\s*chain"
+
+  - name: "Du Lịch"
+    keywords:
+      - "du\\s*lịch"
+      - "du\\s*lich"
+      - "tourism"
+
+  - name: "Ngôn Ngữ Anh"
+    keywords:
+      - "ngôn\\s*ngữ\\s*anh"
+      - "tiếng\\s*anh"
+      - "\\bnna\\b"
+      - "english"

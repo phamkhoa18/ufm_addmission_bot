@@ -1,0 +1,30 @@
+{
+  "_comment": "Bảng mapping mã ngành + viết tắt tuyển sinh UFM. Viết tắt gồm cả HOA + thường để embedding match mọi kiểu gõ",
+  "ma_nganh": {
+    "tien_si|tài chính - ngân hàng": "9340201",
+    "tien_si|quản trị kinh doanh": "9340101",
+    "tien_si|quản lý kinh tế": "9310110",
+
+    "thac_si|tài chính - ngân hàng": "8340201",
+    "thac_si|quản trị kinh doanh": "8340101",
+    "thac_si|quản lý kinh tế": "8310110",
+    "thac_si|marketing": "8340115",
+    "thac_si|kinh doanh quốc tế": "8340120",
+    "thac_si|kế toán": "8340301",
+    "thac_si|toán kinh tế": "8310108",
+    "thac_si|kinh tế học": "8310101",
+    "thac_si|luật kinh tế": "8380107"
+  },
+
+  "viet_tat": {
+    "tài chính - ngân hàng": "TC-NH, TCNH, tc-nh, tcnh, Tài chính Ngân hàng",
+    "quản trị kinh doanh": "QTKD, qtkd, Quản trị KD",
+    "quản lý kinh tế": "QLKT, qlkt, Quản lý KT",
+    "marketing": "MKT, mkt, Marketing",
+    "kinh doanh quốc tế": "KDQT, kdqt, KD Quốc tế",
+    "kế toán": "KT, kt, Kế toán",
+    "toán kinh tế": "TKT, tkt, Toán KT",
+    "kinh tế học": "KTH, kth, Kinh tế",
+    "luật kinh tế": "LKT, lkt, Luật KT"
+  }
+}

@@ -1,0 +1,24 @@
+# ============================================================
+# QUERY CONTEXT CONFIG — Chỉ chứa Memory & Logic params (phi-Model)
+# File: app/core/config/yaml/query_context_config.yaml
+#
+# ⚠️ Model configs (reformulation, multi_query, embedding) → models_config.yaml
+# ⚠️ System prompts → prompts_config.yaml
+# ⚠️ File này CHỈ còn: memory settings, auto_summarize triggers,
+#    merge_strategy, top_k settings, skip flags
+# ============================================================
+
+# ----------------------------------------------------------
+# BỘ NHỚ HỘI THOẠI (Sliding Window Memory)
+# ----------------------------------------------------------
+memory:
+  max_history_turns: 10
+  max_tokens_per_message: 400
+  include_system_summary: false
+
+  # Tóm tắt tự động khi message quá dài
+  auto_summarize:
+    enabled: true
+    trigger_length: 300              # Message > 300 ký tự sẽ bị tóm tắt
+    target_length: 120               # Tóm còn ~120 ký tự
+    # Model config cho auto_summarize → models_config.yaml section auto_summarize

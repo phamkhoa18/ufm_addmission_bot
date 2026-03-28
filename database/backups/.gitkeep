@@ -1,0 +1,2 @@
+# Thư mục này chứa backup PostgreSQL từ container
+# File .gitkeep giữ thư mục trong Git (nội dung backup không commit)

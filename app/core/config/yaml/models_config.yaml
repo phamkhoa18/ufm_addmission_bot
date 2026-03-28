@@ -1,0 +1,339 @@
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  MODELS CONFIG — Toàn bộ Model AI theo thứ tự Pipeline       ║
+# ║  File: app/core/config/yaml/models_config.yaml              ║
+# ║  KHÔNG chứa API key — an toàn để commit lên Git             ║
+# ╚══════════════════════════════════════════════════════════════╝
+#
+# ┌─────────────────────────────────────────────────────────────┐
+# │  PIPELINE: User Query → Response                           │
+# │                                                             │
+# │  ❶ Fast Scan (regex, $0)            ❷ Long Query Summarizer│
+# │  ❸ Context Node (reformulate)       ❹ Contextual Guard     │
+# │  ❺ Intent Classification            ❻ Multi-Query          │
+# │  ❼ Embedding (BGE-M3)               ❽ RAG + Context Curator│
+# │  ❾ Proceed RAG Search (Web)         ❿ Care / Form Agents   │
+# │  ⓫ Response Node (Main Bot)                                │
+# └─────────────────────────────────────────────────────────────┘
+
+
+# ══════════════════════════════════════════════════════════════
+# ❷ LONG QUERY SUMMARIZER — Nén query dài (>= 1500 chars)
+# ══════════════════════════════════════════════════════════════
+long_query_summarizer:
+  provider: "openrouter"
+  model: "google/gemini-2.5-flash-lite"
+  temperature: 0.2
+  max_tokens: 500
+  timeout_seconds: 6
+  fallbacks:
+    - provider: "openrouter"
+      model: "qwen/qwen-2.5-7b-instruct"
+
+
+# ══════════════════════════════════════════════════════════════
+# ❹ FAST SCAN — Guard Layer 2a (Llama 86M, Groq ~100ms)
+# ══════════════════════════════════════════════════════════════
+prompt_guard_fast:
+  provider: "groq"
+  model: "meta-llama/llama-prompt-guard-2-86m"
+  max_tokens_per_chunk: 10
+  score_threshold: 0.88
+  fallbacks:
+    - provider: "openrouter"
+      model: "qwen/qwen-2.5-7b-instruct"
+
+
+# ══════════════════════════════════════════════════════════════
+# ❸ CONTEXT NODE — Query Reformulation
+# ══════════════════════════════════════════════════════════════
+query_reformulation:
+  provider: "openrouter"
+  model: "google/gemini-2.0-flash-001"
+  temperature: 0.1
+  max_tokens: 100
+  timeout_seconds: 8
+  skip_if_no_history: true
+  fallbacks:
+    - provider: "openrouter"
+      model: "qwen/qwen-2.5-7b-instruct"
+
+auto_summarize:
+  provider: "openrouter"
+  temperature: 0.0
+  model: "google/gemini-2.5-flash"
+  max_tokens: 140
+  timeout_seconds: 4
+
+
+# ══════════════════════════════════════════════════════════════
+# ❹ CONTEXTUAL GUARD — Guard Layer 2b (Gemini Flash)
+# ══════════════════════════════════════════════════════════════
+prompt_guard_deep:
+  provider: "openrouter"
+  model: "google/gemini-2.5-flash"
+  temperature: 0.0
+  response_format: "json_object"
+  fallbacks: []
+
+
+# ══════════════════════════════════════════════════════════════
+# ❻ MULTI-QUERY — Sinh biến thể câu hỏi (tăng recall)
+# ══════════════════════════════════════════════════════════════
+multi_query:
+  provider: "openrouter"
+  model: "google/gemini-2.5-flash"
+  temperature: 0.5
+  max_tokens: 250
+  timeout_seconds: 8
+  num_variants: 3
+  merge_strategy: "rrf"
+  top_k_per_query: 5
+  top_k_final: 7
+  fallbacks:
+    - provider: "openrouter"
+      model: "qwen/qwen-2.5-7b-instruct"
+
+
+# ══════════════════════════════════════════════════════════════
+# ❼ EMBEDDING — BGE-M3 Multilingual (1024D)
+# ══════════════════════════════════════════════════════════════
+embedding:
+  provider: "openrouter"
+  model: "baai/bge-m3"
+  dimensions: 1024
+  batch_size: 4
+  fallbacks: []
+
+
+# ══════════════════════════════════════════════════════════════
+# ❺ INTENT CLASSIFICATION
+# ══════════════════════════════════════════════════════════════
+
+# Vector Router (fast ~50ms)
+vector_router:
+  provider: "openrouter"
+  model: "baai/bge-m3"
+  dimensions: 1024
+  similarity_threshold: 0.85
+
+# LLM Semantic Router (deep ~1-2s, khi vector score < threshold)
+semantic_router:
+  provider: "openrouter"
+  model: "google/gemini-2.5-flash"
+  temperature: 0.0
+  response_format: "json_object"
+  fallbacks:
+    - provider: "openrouter"
+      model: "qwen/qwen-2.5-7b-instruct"
+
+
+# ══════════════════════════════════════════════════════════════
+# ❽ CONTEXT CURATOR — Gemini 2.5 Flash lọc ngữ cảnh RAG
+#    Chạy sau RAG Node, giữ tối đa info hữu ích, bỏ noise
+# ══════════════════════════════════════════════════════════════
+context_evaluator:
+  enabled: true
+  provider: "openrouter"
+  model: "google/gemini-2.5-flash"
+  temperature: 0.0
+  max_tokens: 20
+  timeout_seconds: 8
+  fallbacks:
+    - provider: "openrouter"
+      model: "qwen/qwen-2.5-7b-instruct"
+
+
+# ══════════════════════════════════════════════════════════════
+# ❾ PROCEED RAG SEARCH — Web-Augmented RAG Pipeline
+#
+#    ★ TOGGLE HIERARCHY (2 cấp bật/tắt):
+#
+#    proceed_rag_search.enabled: true/false
+#      → Bật/tắt TOÀN BỘ pipeline (query gen + web + synth + sanit)
+#      → false = trả rag_context thô, bypass mọi thứ
+#
+#    web_search.enabled: true/false  (★ PRODUCTION TOGGLE)
+#      → Chỉ bật/tắt phần TÌM KIẾM TRÊN MẠNG (internet search)
+#      → false = bỏ qua query gen + cache + web search API
+#      → Synthesizer + Sanitizer VẪN CHẠY (format chuẩn từ DB context)
+#      → KHÔNG ảnh hưởng các agent node khác (form, care, response)
+#
+#    Ví dụ Production:
+#      proceed_rag_search.enabled: true   # Pipeline vẫn hoạt động
+#      web_search.enabled: false          # Tắt internet search, tiết kiệm
+# ══════════════════════════════════════════════════════════════
+proceed_rag_search:
+  enabled: false
+
+# PR Query Generator
+pr_query:
+  provider: "openrouter"
+  model: "google/gemini-2.5-flash"
+  temperature: 0.4
+  max_tokens: 150
+  timeout_seconds: 10
+  fallbacks:
+    - provider: "openrouter"
+      model: "qwen/qwen-2.5-7b-instruct"
+
+# UFM Query Generator
+ufm_query:
+  provider: "openrouter"
+  model: "google/gemini-2.5-flash"
+  temperature: 0.2
+  max_tokens: 150
+  timeout_seconds: 10
+  fallbacks:
+    - provider: "openrouter"
+      model: "qwen/qwen-2.5-7b-instruct"
+
+# Web Search (Google native + google_search grounding)
+# ★ PRODUCTION TOGGLE: Đặt enabled: false để tắt tìm kiếm internet
+#   → Chỉ tắt web search, KHÔNG ảnh hưởng form/care/response nodes  
+#   → Synthesizer + Sanitizer vẫn chạy bình thường
+web_search:
+  enabled: false        # ← Đổi thành false để tắt internet search cho production
+  provider: "google"
+  model: "gemini-2.5-flash"
+  temperature: 0.0
+  max_tokens: 2000
+  timeout_seconds: 20
+  ufm_domains:
+    - "ufm.edu.vn"
+    - "tuyensinh.ufm.edu.vn"
+    - "nhaphoc.ufm.edu.vn"
+    - "uis.ufm.edu.vn"
+    - "pdt.ufm.edu.vn"
+    - "phongcongtacsinhvien.ufm.edu.vn"
+    - "thuvien.ufm.edu.vn"
+    - "daotaosdh.ufm.edu.vn"
+    - "isfm.ufm.edu.vn"
+    - "ice.ufm.edu.vn"
+    - "ufm-elearning.edu.vn"
+    - "jfm.ufm.edu.vn"
+    - "jfm.edu.vn"
+    - "kytucxa.ufm.edu.vn"
+  pr_domains:
+    - "thanhnien.vn"
+    - "vnexpress.net"
+    - "tuoitre.vn"
+    - "dantri.com.vn"
+    - "giaoducthoidai.vn"
+  fallbacks:
+    - provider: "openrouter"
+      model: "openai/gpt-4o-search-preview"
+    - provider: "openrouter"
+      model: "perplexity/sonar"
+
+# Info Synthesizer (UFM Search)
+info_synthesizer:
+  provider: "openrouter"
+  model: "google/gemini-2.5-flash"
+  temperature: 0.0
+  max_tokens: 1500
+  timeout_seconds: 15
+  fallbacks:
+    - provider: "openrouter"
+      model: "qwen/qwen-2.5-7b-instruct"
+
+# PR Synthesizer (PR Search)
+pr_synthesizer:
+  provider: "openrouter"
+  model: "google/gemini-2.5-flash"
+  temperature: 0.1
+  max_tokens: 1500
+  timeout_seconds: 15
+  fallbacks:
+    - provider: "openrouter"
+      model: "qwen/qwen-2.5-7b-instruct"
+
+# Sanitizer (kiểm duyệt bản nháp)
+sanitizer:
+  provider: "openrouter"
+  model: "google/gemini-2.5-flash"
+  temperature: 0.0
+  max_tokens: 250
+  timeout_seconds: 10
+  max_loops: 1
+  fallbacks:
+    - provider: "openrouter"
+      model: "qwen/qwen-2.5-7b-instruct"
+
+# Semantic Search Cache
+search_cache:
+  enabled: true
+  similarity_threshold: 0.80
+  ttl_hours: 24
+  max_entries: 200
+
+
+# ══════════════════════════════════════════════════════════════
+# ❿ CARE NODE — Chăm sóc sinh viên (đồng cảm + liên hệ)
+# ══════════════════════════════════════════════════════════════
+care:
+  provider: "openrouter"
+  model: "google/gemini-2.5-flash"
+  temperature: 0.5
+  max_tokens: 1000
+  timeout_seconds: 15
+  fallbacks:
+    - provider: "openrouter"
+      model: "qwen/qwen3-30b-a3b"
+
+
+# ══════════════════════════════════════════════════════════════
+# ❿ FORM NODE — Pipeline 3 bước: Selector → Extractor → Drafter
+#    Selector:  Gemini 001 chọn mẫu đơn theo title metadata
+#    Extractor: Gemini Flash trích xuất thông tin cá nhân từ chat
+#    Drafter:   Gemini Flash soạn văn bản hành chính
+# ══════════════════════════════════════════════════════════════
+form:
+  provider: "openrouter"
+  # Bước 1: LLM chọn 1-3 mẫu đơn phù hợp từ metadata title
+  selector:
+    model: "google/gemini-2.0-flash-001"
+    temperature: 0.0
+    max_tokens: 200           # Đủ cho JSON 3 items
+    timeout_seconds: 5
+  # Bước 2: Trích xuất thông tin cá nhân từ lịch sử chat
+  extractor:
+    model: "google/gemini-2.5-flash"
+    temperature: 0.0
+    max_tokens: 800
+    timeout_seconds: 10
+  # Bước 3: Soạn thảo văn bản hành chính
+  drafter:
+    model: "google/gemini-2.5-flash"
+    temperature: 0.4               # Có template → bám sát
+    temperature_no_template: 0.3   # Không template → sáng tạo vừa đủ
+    max_tokens: 4000
+    timeout_seconds: 20
+  fallbacks:
+    - provider: "openrouter"
+      model: "qwen/qwen3-30b-a3b"
+
+
+# ══════════════════════════════════════════════════════════════
+# ⓫ MAIN BOT — LLM phản hồi chính (node cuối cùng)
+# ══════════════════════════════════════════════════════════════
+main_bot:
+  enabled: true
+  provider: "openrouter"
+  model: "google/gemini-2.5-flash"
+  temperature: 0.4
+  max_tokens: 9000
+  timeout_seconds: 24
+  fallbacks:
+    - provider: "openrouter"
+      model: "meta-llama/llama-3.1-70b-instruct"
+    - provider: "openrouter"
+      model: "qwen/qwen-2.5-72b-instruct"
+
+
+# ══════════════════════════════════════════════════════════════
+# ⚙️ FALLBACK SETTINGS
+# ══════════════════════════════════════════════════════════════
+fallback_settings:
+  max_retries: 2
+  retry_delay_ms: 500
+  log_fallback: true

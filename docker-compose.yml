@@ -1,0 +1,147 @@
+version: '3.8'
+
+# ============================================================
+# UFM ADMISSION BOT — Docker Compose
+# Services:
+#   1. postgres_vector  — PostgreSQL 16 + pgvector (Vector DB)
+#   2. app              — FastAPI Chatbot Application
+#   3. pgadmin          — Database Admin UI (optional)
+# ============================================================
+
+services:
+  # ==========================================================
+  # SERVICE 1: POSTGRESQL + PGVECTOR
+  # Image: pgvector/pgvector:pg16 (official, optimized)
+  # Volume: pgvector_data (persistent) + backup mount
+  # ==========================================================
+  postgres_vector:
+    image: pgvector/pgvector:pg16
+    container_name: ufm_pgvector
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ufm_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ufm_secure_password_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-ufm_admission_db}
+      # Tối ưu PostgreSQL cho Vector Search workload
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+
+    volumes:
+      # Volume chính — Persistent data (survive container restart)
+      - pgvector_data:/var/lib/postgresql/data
+
+      # Init script — Tự động chạy 1 lần khi tạo DB lần đầu
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+
+      # Backup volume — Mount thư mục host để pg_dump ghi ra
+      - ./database/backups:/backups
+
+    # Tuning PostgreSQL cho pgvector workload
+    command: >
+      postgres
+        -c shared_buffers=256MB
+        -c effective_cache_size=512MB
+        -c work_mem=64MB
+        -c maintenance_work_mem=128MB
+        -c max_parallel_workers_per_gather=2
+        -c random_page_cost=1.1
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ufm_admin} -d ${POSTGRES_DB:-ufm_admission_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    networks:
+      - ufm_network
+
+  # ==========================================================
+  # SERVICE 2: UFM ADMISSION BOT (FastAPI App)
+  # Build từ Dockerfile, kết nối PostgreSQL qua internal network
+  # ==========================================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ufm_app
+    restart: always
+
+    environment:
+      # Database connection (override .env cho Docker internal network)
+      POSTGRES_HOST: "postgres_vector"
+      POSTGRES_PORT: "5432"
+      DATABASE_URL: "postgresql+asyncpg://${POSTGRES_USER:-ufm_admin}:${POSTGRES_PASSWORD:-ufm_secure_password_2026}@postgres_vector:5432/${POSTGRES_DB:-ufm_admission_db}"
+      DATABASE_URL_SYNC: "postgresql://${POSTGRES_USER:-ufm_admin}:${POSTGRES_PASSWORD:-ufm_secure_password_2026}@postgres_vector:5432/${POSTGRES_DB:-ufm_admission_db}"
+
+      # Python
+      PYTHONUNBUFFERED: "1"
+      PYTHONPATH: "/app"
+
+    # Load API keys từ .env
+    env_file:
+      - .env
+
+    ports:
+      - "${APP_PORT:-8000}:8000"
+
+    volumes:
+      # Mount data để ingestion script truy cập ngoài container
+      - ./data:/app/data:ro
+      # Mount static để sửa HTML/CSS/JS realtime, không cần build lại
+      - ./static:/app/static
+
+    depends_on:
+      postgres_vector:
+        condition: service_healthy
+
+    networks:
+      - ufm_network
+
+  # ==========================================================
+  # SERVICE 3: PGADMIN 4 (Giao diện Quản trị — Tùy chọn)
+  # Truy cập: http://localhost:5050
+  # Email: admin@ufm.edu.vn / Password: admin
+  # ==========================================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: ufm_pgadmin
+    restart: always
+    profiles:
+      - admin   # Chỉ chạy khi: docker compose --profile admin up
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@ufm.edu.vn}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    depends_on:
+      postgres_vector:
+        condition: service_healthy
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - ufm_network
+
+# ============================================================
+# VOLUMES — Persistent Data
+# ============================================================
+volumes:
+  # Volume Docker managed — Data PostgreSQL chính
+  pgvector_data:
+    name: ufm_pgvector_data
+    labels:
+      com.ufm.description: "PostgreSQL + pgvector persistent data"
+
+  # Volume cho pgAdmin sessions
+  pgadmin_data:
+    name: ufm_pgadmin_data
+
+# ============================================================
+# NETWORK — Internal communication
+# ============================================================
+networks:
+  ufm_network:
+    name: ufm_network
+    driver: bridge

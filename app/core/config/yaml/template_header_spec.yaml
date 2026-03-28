@@ -1,0 +1,322 @@
+# =============================================================
+# TEMPLATE HEADER SPECIFICATION v1.0
+# Chuẩn header thống nhất cho toàn bộ dữ liệu Markdown UFM
+# =============================================================
+#
+# MỤC TIÊU:
+#   - Chuẩn hóa metadata header cho CẢ HAI loại file:
+#     1. thongtinchung/ (dữ liệu tuyển sinh → pipeline chunking RAG)
+#     2. maudon/ (biểu mẫu hành chính → pipeline Form Agent)
+#   - Hỗ trợ pipeline tự động: Upload file → parse header → nạp DB
+#
+# =============================================================
+# CẤU TRÚC FILE MARKDOWN CHUẨN:
+# =============================================================
+#
+#   ---                              ← YAML Frontmatter kết thúc
+#   doc_type: thongtinchung          ← BẮT BUỘC: "thongtinchung" | "maudon" (Map vào extra JSONB)
+#   doc_id: TS-THS-2026-D1           ← BẮT BUỘC: Mã định danh duy nhất (Trở thành tiền tố của chunk_id)
+#   title: "Tuyển sinh Thạc sĩ"     ← BẮT BUỘC: Tiêu đề ngắn (Map vào source hoặc section_name)
+#   effective_date: 2026-01-15       ← BẮT BUỘC: Ngày hiệu lực (Map thẳng vào cột valid_from của DB)
+#   doc_number: "186/TB-ĐHTCM"      ← TÙY CHỌN: Số văn bản (Map vào extra JSONB)
+#   program_level: "thac_si"        ← TÙY CHỌN: "thac_si" | "tien_si" | "dai_hoc" | "chung" (Map thẳng vào cột program_level)
+#   academic_year: "2026"           ← TÙY CHỌN: Năm học / đợt (Map thẳng vào cột academic_year)
+#   parent_doc_id: null              ← TÙY CHỌN: Mã file cha (Map vào extra JSONB)
+#   keywords: [thạc sĩ, cao học]    ← TÙY CHỌN: Từ khóa bổ sung (Map vào extra JSONB)
+#   source_url: null                 ← TÙY CHỌN: Link gốc trên website (Map vào extra JSONB)
+#   ---                              ← YAML Frontmatter kết thúc
+#   -start-                          ← Dấu hiệu bắt đầu NỘI DUNG CHÍNH
+#   (Nội dung Markdown ở đây)
+#
+# =============================================================
+
+
+# ----- DANH SÁCH FIELDS HEADER -----
+
+fields:
+  # ===== BẮT BUỘC (required: true) =====
+  # Pipeline sẽ REJECT file nếu thiếu các field này.
+
+  - key: "doc_type"
+    label: "Loại tài liệu"
+    required: true
+    allowed_values: ["thongtinchung", "maudon"]
+    description: >
+      Phân loại file thuộc nhóm nào.
+      thongtinchung: văn bản thông tin tuyển sinh → đi vào RAG chunking pipeline.
+      maudon: biểu mẫu hành chính → đi vào Form Agent pipeline.
+
+  - key: "doc_id"
+    label: "Mã tài liệu"
+    required: true
+    allowed_values: null
+    description: >
+      Định danh duy nhất, dùng để truy vết (tracing) và liên kết parent-child.
+      Quy ước đặt tên: [LOẠI]-[TRÌNH ĐỘ]-[NĂM]-[ĐỢT] HOẶC chuẩn hóa từ Tên File (Không dấu, Lowercase, thay khoảng trắng bằng dấu gạch ngang).
+      Ví dụ: TS-THS-2026-D1, MD-TS-2026 hoặc tuyen-sinh-tien-si-dot1-2026
+
+  - key: "title"
+    label: "Tiêu đề"
+    required: true
+    allowed_values: null
+    description: >
+      Tiêu đề ngắn gọn của văn bản.
+      Ví dụ: "Thông báo tuyển sinh trình độ thạc sĩ đợt 1 năm 2026"
+
+  - key: "effective_date"
+    label: "Ngày hiệu lực"
+    required: true
+    allowed_values: null
+    description: >
+      Ngày ban hành hoặc có hiệu lực, định dạng ISO 8601 (YYYY-MM-DD).
+      DB MAP: Ánh xạ trực tiếp vào cột `valid_from` (TIMESTAMP) trong DB knowledge_chunks.
+
+  # ===== TÙY CHỌN (required: false) =====
+  # Nếu không có, pipeline sẽ đặt giá trị null và vẫn xử lý bình thường.
+
+  - key: "doc_number"
+    label: "Số văn bản"
+    required: false
+    allowed_values: null
+    description: "Số hiệu văn bản hành chính. VD: 186/TB-ĐHTCM"
+
+  - key: "program_level"
+    label: "Trình độ đào tạo"
+    required: false
+    allowed_values: ["dai_hoc", "thac_si", "tien_si", "chung"]
+    description: >
+      Cấp bậc đào tạo mà văn bản liên quan. Null nếu áp dụng chung.
+      DB MAP: Ánh xạ trực tiếp vào cột `program_level` (VARCHAR) trong DB knowledge_chunks.
+
+  - key: "academic_year"
+    label: "Năm học / Đợt tuyển sinh"
+    required: false
+    allowed_values: null
+    description: >
+      Năm học hoặc đợt tuyển sinh. VD: "2025-2026" hoặc "2026_Dot1".
+      DB MAP: Ánh xạ trực tiếp vào cột `academic_year` (VARCHAR) trong DB knowledge_chunks.
+
+  - key: "parent_doc_id"
+    label: "Mã tài liệu cha"
+    required: false
+    allowed_values: null
+    description: >
+      Liên kết với văn bản gốc. Ví dụ phụ lục 1 có parent_doc_id = TS-THS-2026-D1.
+      Dùng để pipeline tự động nhóm các phụ lục cùng bộ thông báo.
+
+  - key: "keywords"
+    label: "Từ khóa"
+    required: false
+    allowed_values: null
+    description: "Danh sách từ khóa phụ, hỗ trợ search và intent matching."
+
+  - key: "source_url"
+    label: "URL nguồn"
+    required: false
+    allowed_values: null
+    description: "Link gốc trên website UFM (nếu có)."
+
+
+# ----- PIPELINE XỬ LÝ -----
+
+pipeline:
+  # Bước 1: Parse YAML Frontmatter
+  parse_step:
+    description: >
+      Đọc block --- ... --- đầu file.
+      Validate required fields. Reject nếu thiếu.
+    output: "metadata dict"
+
+  # Bước 2: Tách nội dung
+  split_step:
+    description: >
+      Chẻ tại marker '-start-' để lấy body content.
+      Nếu không có '-start-', toàn bộ phần sau frontmatter là body.
+    output: "body text"
+
+  # Bước 3: Routing theo doc_type và Database Mapping
+  routing:
+    thongtinchung:
+      description: "Đưa vào Semantic Chunking Pipeline -> nhúng embedding -> nạp knowledge_chunks DB."
+      database_mapping: >
+        - effective_date -> valid_from (TIMESTAMP)
+        - program_level -> program_level (VARCHAR)
+        - academic_year -> academic_year (VARCHAR)
+        - doc_id -> Trở thành prefix cho cột source hoặc chunk_id
+        - doc_type, doc_number, parent_doc_id, keywords, source_url -> Lưu tất cả vào cột `extra` (JSONB)
+        Việc map chặt chẽ ngăn SQL Injection và Data Type crash.
+
+    maudon:
+      description: "Đưa vào Form Agent catalog -> cập nhật form_config.yaml tự động."
+      metadata_injection: >
+        Tự động tạo entry trong forms[] với id=doc_id, name=title,
+        keywords=keywords, template_file=filename.
+
+
+# =============================================================
+# VALIDATION & FALLBACK — Xử lý lỗi + Chống tấn công
+# =============================================================
+
+validation:
+  # ----- LAYER 0: Kiểm tra cấu trúc file -----
+  structure_check:
+    rules:
+      - id: "V0-01"
+        check: "File phải bắt đầu bằng block --- (YAML frontmatter)"
+        on_fail: "REJECT"
+        fallback_message: "File khong co YAML frontmatter. Vui long them block --- ... --- o dau file."
+
+      - id: "V0-02"
+        check: "File phải có marker '-start-' để tách metadata khỏi nội dung"
+        on_fail: "WARN"
+        fallback_message: "Khong tim thay marker '-start-'. Toan bo phan sau frontmatter se duoc coi la body."
+
+      - id: "V0-03"
+        check: "Kích thước file <= 5MB"
+        on_fail: "REJECT"
+        fallback_message: "File qua lon (>5MB). Vui long chia nho hoac lien he Admin."
+
+      - id: "V0-04"
+        check: "File phải có đuôi .md"
+        on_fail: "REJECT"
+        fallback_message: "Chi chap nhan file .md (Markdown)."
+
+  # ----- LAYER 1: Validate từng field -----
+  field_validation:
+    rules:
+      # --- Required field thiếu ---
+      - id: "V1-01"
+        check: "doc_type khong duoc null/empty"
+        on_fail: "REJECT"
+        fallback_message: "Thieu field bat buoc: doc_type. Phai la 'thongtinchung' hoac 'maudon'."
+
+      - id: "V1-02"
+        check: "doc_id khong duoc null/empty"
+        on_fail: "REJECT"
+        fallback_message: "Thieu field bat buoc: doc_id. Dat ten theo quy uoc: [LOAI]-[TRINH DO]-[NAM]-[DOT]."
+
+      - id: "V1-03"
+        check: "title khong duoc null/empty"
+        on_fail: "REJECT"
+        fallback_message: "Thieu field bat buoc: title."
+
+      - id: "V1-04"
+        check: "effective_date khong duoc null/empty"
+        on_fail: "REJECT"
+        fallback_message: "Thieu field bat buoc: effective_date. Dinh dang: YYYY-MM-DD."
+
+      # --- Giá trị không hợp lệ ---
+      - id: "V1-10"
+        check: "doc_type phai nam trong allowed_values ['thongtinchung', 'maudon']"
+        on_fail: "REJECT"
+        fallback_message: "doc_type khong hop le. Chi chap nhan: thongtinchung, maudon."
+
+      - id: "V1-11"
+        check: "effective_date phai dung dinh dang ISO 8601 (YYYY-MM-DD)"
+        on_fail: "REJECT"
+        fallback_message: "effective_date sai dinh dang. Dung: 2026-01-15 (YYYY-MM-DD)."
+
+      - id: "V1-12"
+        check: "program_level (neu co) phai nam trong ['dai_hoc', 'thac_si', 'tien_si', 'chung']"
+        on_fail: "WARN_AND_SET_NULL"
+        fallback_message: "program_level khong hop le. Se dat ve null."
+
+      - id: "V1-13"
+        check: "doc_id chi chua ky tu [A-Za-z0-9_-] (ASCII safe)"
+        on_fail: "REJECT"
+        fallback_message: "doc_id chua ky tu khong hop le. Chi dung A-Z, 0-9, gach ngang, gach duoi."
+
+      # --- Giá trị trống cho field tùy chọn → set null ---
+      - id: "V1-20"
+        check: "Bat ky optional field nao co gia tri empty string"
+        on_fail: "AUTO_NULL"
+        fallback_message: "Field tuy chon de trong se duoc tu dong dat ve null."
+
+
+  # ----- LAYER 2: Chống Injection / Tấn công qua Header -----
+  security:
+    rules:
+      # --- YAML Bomb / Recursive YAML ---
+      - id: "S2-01"
+        check: "Cam su dung YAML anchor (&) va alias (*) trong frontmatter"
+        reason: "Chong YAML Bomb (billion laughs attack) khi yaml.safe_load"
+        on_fail: "REJECT"
+        fallback_message: "Frontmatter chua ky tu & hoac * (YAML anchor/alias). Bi chan vi ly do bao mat."
+
+      # --- Code injection qua field value (NỚI LỎNG) ---
+      - id: "S2-02"
+        check: "YAML header field value KHONG duoc chua: {{ }}, {% %}, ${}, $()"
+        reason: "Chong template injection (Jinja2/Bash). Chi kiem tra YAML header fields, KHONG kiem tra body."
+        on_fail: "WARN_AND_STRIP"
+        fallback_message: "Field nghi ngo injection pattern. Da tu dong strip ky tu nguy hiem."
+
+      # --- Script injection qua Markdown body ---
+      - id: "S2-03"
+        check: "Body content KHONG duoc chua tag: <script>, <iframe>, <object>, <embed>, javascript:"
+        reason: "Chong XSS khi render Markdown ra HTML tren Frontend."
+        on_fail: "SANITIZE"
+        fallback_message: "Noi dung chua HTML tag nguy hiem. Se tu dong xoa cac tag nay."
+
+      # --- Path traversal qua source_url (NỚI LỎNG cho http://) ---
+      - id: "S2-04"
+        check: "source_url (neu co) phai bat dau bang http:// hoac https://, KHONG chua '../', 'file://', 'data:'"
+        reason: "Chong path traversal va data URI injection. Cho phep http:// vi UFM co noi bo."
+        on_fail: "SET_NULL"
+        fallback_message: "source_url khong hop le (phai la http/https, khong chua path traversal). Dat ve null."
+
+      # --- Kích thước field (NỚI RỘNG cho văn bản hành chính) ---
+      - id: "S2-05"
+        check: "Moi field value khong qua 2000 ky tu (title co the 3000). Body KHONG bi gioi han."
+        reason: "Chi ap dung cho YAML header fields. Body content do Pipeline chunking xu ly."
+        on_fail: "TRUNCATE"
+        fallback_message: "Field qua dai. Se tu dong cat bot ve gioi han."
+
+      # --- doc_id trùng lặp ---
+      - id: "S2-06"
+        check: "doc_id chua ton tai trong database"
+        reason: "Chong ghi de (overwrite attack). Neu trung -> yeu cau xac nhan."
+        on_fail: "CONFIRM_OVERWRITE"
+        fallback_message: "doc_id da ton tai. Ban co muon ghi de khong? (y/n)"
+
+      # --- Encoding attack ---
+      - id: "S2-07"
+        check: "File phai duoc encode bang UTF-8. Khong chap nhan UTF-16, Latin-1, hoac encoding la."
+        reason: "Chong bypass filter bang homoglyph (ky tu Unicode giong ASCII nhung khac ma)."
+        on_fail: "REJECT"
+        fallback_message: "File khong phai UTF-8. Vui long chuyen doi encoding truoc khi upload."
+
+
+  # ----- LAYER 3: Rate Limit & Abuse Detection -----
+  abuse_detection:
+    max_uploads_per_hour: 20
+    max_rejections_before_block: 3
+    block_duration_minutes: 30
+    rules:
+      - id: "A3-01"
+        check: "Neu 1 user bi REJECT >= 3 lan lien tiep trong 1 gio"
+        on_fail: "TEMP_BLOCK"
+        fallback_message: "Ban da upload qua nhieu file khong hop le. Tai khoan bi tam khoa 30 phut."
+
+      - id: "A3-02"
+        check: "Neu phat hien >= 2 file co security REJECT (S2-*) trong 1 session"
+        on_fail: "ALERT_ADMIN"
+        fallback_message: "Canh bao! Co the dang bi tan cong. Da gui log cho Admin."
+
+
+# =============================================================
+# FALLBACK ACTION REFERENCE
+# =============================================================
+#
+#  Action            | Ý nghĩa
+#  ──────────────────┼─────────────────────────────────────────
+#  REJECT            | Dừng pipeline, không nạp file, trả lỗi cho user.
+#  WARN              | Log cảnh báo, tiếp tục pipeline với giá trị mặc định.
+#  WARN_AND_SET_NULL | Log cảnh báo + set field = null, tiếp tục pipeline.
+#  AUTO_NULL         | Không log, tự đặt field rỗng = null (silent).
+#  SANITIZE          | Xóa/thay thế nội dung nguy hiểm, tiếp tục pipeline.
+#  SET_NULL          | Đặt field = null (cho URL/giá trị không hợp lệ).
+#  TRUNCATE          | Cắt bớt giá trị quá dài về max length cho phép.
+#  CONFIRM_OVERWRITE | Hỏi user xác nhận trước khi ghi đè doc_id cũ.
+#  TEMP_BLOCK        | Tạm khóa upload trong N phút.
+#  ALERT_ADMIN       | Gửi cảnh báo đến Admin (email/Slack/Telegram).
+#

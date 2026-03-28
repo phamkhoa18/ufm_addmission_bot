@@ -1,0 +1,56 @@
+# Environments
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+env/
+ENV/
+chunk_Process/chunk_algorithms/*
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+build/
+dist/
+data/*
+*.egg-info/
+.eggs/
+*.egg
+
+# Testing & Coverage
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+nosetests.xml
+junit.xml
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Docker
+docker-compose.override.yml
+
+# Database backups (chứa .sql dump — không push lên Git)
+database/backups/*.sql
+database/backups/*.gz
+
+# Chunk exports (JSON preview — không push lên Git)
+data/exports/
+
+# Các file XML hoặc log (tránh push nhầm file build xml/log)
+*.log
+*.xml
+!pom.xml      # (chừa lại pom.xml nếu dùng Java Maven)
+!build.xml    # (chừa lại build.xml nếu dùng Ant)
+
+# Custom ignore for UFM chatbot generated logs
+tests/logs/
+tests/logs/*.txt

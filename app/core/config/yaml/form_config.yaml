@@ -1,0 +1,58 @@
+# ============================================================
+# FORM AGENT CONFIG — Định nghĩa fields trích xuất thông tin
+# File: app/core/config/yaml/form_config.yaml
+#
+# ⚠️ Model config (selector, extractor, drafter) → models_config.yaml
+# ⚠️ Prompt config (system_prompt, user_prompt) → prompts_config.yaml
+# ⚠️ Danh mục mẫu đơn → Selector tự quét metadata từ maudon/*.md
+# ⚠️ File này CHỈ còn: fields (gợi ý key cho Extractor)
+# ============================================================
+
+# ----------------------------------------------------------
+# DANH SÁCH KEY TRÍCH XUẤT (dùng bởi Field Extractor)
+#
+# Extractor sẽ đọc danh sách này để biết cần tìm
+# thông tin gì từ lịch sử hội thoại.
+# ----------------------------------------------------------
+fields:
+  # --- Thông tin cá nhân ---
+  - key: "ho_ten"
+    label: "Họ và tên"
+    extract_hint: "Tên đầy đủ của người dùng"
+
+  - key: "ngay_sinh"
+    label: "Ngày sinh"
+    extract_hint: "Ngày tháng năm sinh"
+
+  - key: "dia_chi"
+    label: "Địa chỉ liên hệ"
+    extract_hint: "Nơi ở hiện tại hoặc hộ khẩu"
+
+  - key: "so_dien_thoai"
+    label: "Số điện thoại"
+    extract_hint: "Số điện thoại liên hệ"
+
+  - key: "email"
+    label: "Email"
+    extract_hint: "Địa chỉ email"
+
+  - key: "cccd"
+    label: "Số CCCD/CMND"
+    extract_hint: "Số căn cước công dân hoặc chứng minh nhân dân"
+
+  - key: "co_quan"
+    label: "Cơ quan công tác"
+    extract_hint: "Nơi đang làm việc hoặc học tập"
+
+  # --- Nội dung / nguyện vọng ---
+  - key: "nganh_hoc"
+    label: "Ngành học / Nguyện vọng"
+    extract_hint: "Ngành, chuyên ngành, chương trình đào tạo mong muốn"
+
+  - key: "ly_do"
+    label: "Lý do / Mong muốn"
+    extract_hint: "Lý do nộp đơn, mong muốn học tập, nguyện vọng"
+
+  - key: "thong_tin_bo_sung"
+    label: "Thông tin bổ sung"
+    extract_hint: "Bất kỳ thông tin thêm nào người dùng cung cấp"

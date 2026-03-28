@@ -1,0 +1,137 @@
+=== BÁO CÁO PIPELINE HIERARCHICAL -> SEMANTIC (Top 5 Parents) ===
+Tập tin: tuyển sinh trình độ tiến sĩ đợt 1 năm 2026.md
+================================================================================
+
+********************************************************************************
+📁 [PARENT CHUNK #1] (Tổng: 10)
+   - Parent ID:     186c362e-11ad-428f-8f56-6a5974b1f944
+   - Path:          1. Ngành tuyển sinh:
+   - Level:         PARENT
+   - Tokens Est:    ~104
+   - Program Level: tien_si (Tiến sĩ)
+   - Valid From:    2026-01-05 00:00:00
+   - Academic Year: 2026
+   - Nội dung (Preview): # THÔNG BÁO ## Về việc tuyển sinh trình độ tiến sĩ đợt 1 năm 2026 [Nguồn: tuyển sinh trình độ tiến sĩ đợt 1 năm 2026.md] [Mục: 1. Ngành tuyển sinh:]  | STT | Ngành                 | Mã ngành | Chỉ tiê...
+
+      📍 [CHILD CHUNK #1 / 1]
+         - Child ID:     19868657-3a55-4966-aa56-4cfbd4acc21f
+         - Parent ID Ref:186c362e-11ad-428f-8f56-6a5974b1f944  <-- Trỏ về Parent!
+         - Level:        child
+         - Tokens:       ~92
+         - ----------------------------------------
+            # THÔNG BÁO
+            ## Về việc tuyển sinh trình độ tiến sĩ đợt 1 năm 2026
+            [Nguồn: tuyển sinh trình độ tiến sĩ đợt 1 năm 2026.md]
+            [Mục: 1. Ngành tuyển sinh:]
+            
+            | STT | Ngành | Mã ngành | Chỉ tiêu |
+            | --- | --------------------- | -------- | -------- |
+            | 1. | Tài chính – Ngân hàng | 9340201 | 50 |
+            | 2. | Quản trị kinh doanh | 9340101 | 80 |
+            | 3. | Quản lý kinh tế | 9310110 | 10 |
+         - ----------------------------------------
+
+********************************************************************************
+📁 [PARENT CHUNK #2] (Tổng: 10)
+   - Parent ID:     9d08e9d5-c336-464f-bb2c-fc144d3c0c22
+   - Path:          2. Hình thức tuyển sinh
+   - Level:         PARENT
+   - Tokens Est:    ~77
+   - Program Level: tien_si (Tiến sĩ)
+   - Valid From:    2026-01-05 00:00:00
+   - Academic Year: 2026
+   - Nội dung (Preview): # THÔNG BÁO ## Về việc tuyển sinh trình độ tiến sĩ đợt 1 năm 2026 [Nguồn: tuyển sinh trình độ tiến sĩ đợt 1 năm 2026.md] [Mục: 2. Hình thức tuyển sinh]  xét tuyển, kiểm tra và đánh giá thí sinh (thí s...
+
+      📍 [CHILD CHUNK #1 / 1]
+         - Child ID:     224d7152-cec1-41a7-bda9-b6ead3f551a6
+         - Parent ID Ref:9d08e9d5-c336-464f-bb2c-fc144d3c0c22  <-- Trỏ về Parent!
+         - Level:        child
+         - Tokens:       ~77
+         - ----------------------------------------
+            # THÔNG BÁO
+            ## Về việc tuyển sinh trình độ tiến sĩ đợt 1 năm 2026
+            [Nguồn: tuyển sinh trình độ tiến sĩ đợt 1 năm 2026.md]
+            [Mục: 2. Hình thức tuyển sinh]
+            
+            xét tuyển, kiểm tra và đánh giá thí sinh (thí sinh trình bày dự định nghiên cứu và dự kiến kế hoạch học tập, nghiên cứu toàn khóa trước tiểu ban chuyên môn).
+         - ----------------------------------------
+
+********************************************************************************
+📁 [PARENT CHUNK #3] (Tổng: 10)
+   - Parent ID:     69a2ff99-f49d-4239-9c23-f9e2bc898fca
+   - Path:          3. Điều kiện dự tuyển
+   - Level:         PARENT
+   - Tokens Est:    ~560
+   - Program Level: tien_si (Tiến sĩ)
+   - Valid From:    2026-01-05 00:00:00
+   - Academic Year: 2026
+   - Nội dung (Preview): # THÔNG BÁO ## Về việc tuyển sinh trình độ tiến sĩ đợt 1 năm 2026 [Nguồn: tuyển sinh trình độ tiến sĩ đợt 1 năm 2026.md] [Mục: 3. Điều kiện dự tuyển]  Người dự tuyển đào tạo trình độ tiến sĩ phải đáp ...
+
+      📍 [CHILD CHUNK #1 / 1]
+         - Child ID:     f6b0d164-ce4e-48a2-b6c6-8aa268ec6c1e
+         - Parent ID Ref:69a2ff99-f49d-4239-9c23-f9e2bc898fca  <-- Trỏ về Parent!
+         - Level:        child
+         - Tokens:       ~558
+         - ----------------------------------------
+            # THÔNG BÁO
+            ## Về việc tuyển sinh trình độ tiến sĩ đợt 1 năm 2026
+            [Nguồn: tuyển sinh trình độ tiến sĩ đợt 1 năm 2026.md]
+            [Mục: 3. Điều kiện dự tuyển]
+            
+            Người dự tuyển đào tạo trình độ tiến sĩ phải đáp ứng các điều kiện sau: 3.1.Yêu cầu chung đối với người dự tuyển: a) Đã tốt nghiệp thạc sĩ hoặc tốt nghiệp đại học hạng giỏi trở lên ngành phù hợp (quy định tại Phụ lục III của Thông báo này); nếu bằng tốt nghiệp đại học hay thạc sĩ do cơ sở giáo dục nước ngoài cấp phải được công nhận văn bằng theo quy định hiện hành tại thời điểm dự tuyển; b) Có kinh nghiệm nghiên cứu thể hiện qua luận văn thạc sĩ của chương trình đào tạo định hướng nghiên cứu; hoặc bài báo, báo cáo khoa học đã công bố; hoặc có thời gian công tác từ 02 năm (24 tháng) trở lên là giảng viên, nghiên cứu viên của các cơ sở đào tạo, tổ chức khoa học và công nghệ; c) Có dự thảo đề cương nghiên cứu và dự kiến kế hoạch học tập, nghiên cứu toàn khóa. 3.2. Người dự tuyển là công dân Việt Nam phải đạt yêu cầu về năng lực ngoại ngữ được minh chứng bằng một trong những văn bằng, chứng chỉ sau: a) Bằng tốt nghiệp trình độ đại học trở lên do một cơ sở đào tạo nước ngoài, phân hiệu của cơ sở đào tạo nước ngoài ở Việt Nam hoặc cơ sở đào tạo của Việt Nam cấp cho người học toàn thời gian bằng tiếng nước ngoài; nếu bằng tốt nghiệp đại học hay thạc sĩ do cơ sở đào tạo nước ngoài cấp phải được công nhận văn bằng theo quy định hiện hành tại thời điểm dự tuyển; b) Bằng tốt nghiệp trình độ đại học ngành ngôn ngữ tiếng nước ngoài do các cơ sở đào tạo của Việt Nam cấp; c) Có một trong các chứng chỉ ngoại ngữ quy định tại Phụ lục II của Thông báo này còn hiệu lực tính đến ngày đăng ký dự tuyển hoặc các chứng chỉ ngoại ngữ khác tương đương trình độ bậc 4 (theo khung năng ngoại ngữ 6 bậc dùng cho Việt Nam) do Bộ Giáo dục Đào tạo công bố. 3.3. Người dự tuyển là công dân nước ngoài nếu đăng ký theo học chương trình đào tạo trình độ tiến sĩ bằng tiếng Việt phải có chứng chỉ tiếng Việt tối thiểu từ bậc 4 trở lên theo Khung năng lực tiếng Việt dùng cho người nước ngoài và phải đáp ứng yêu cầu về ngôn ngữ thứ hai theo quy định tại Khoản 3.2, Mục 3 của Thông báo này, trừ trường hợp là người bản ngữ của ngôn ngữ được sử dụng trong chương trình đào tạo trình độ tiến sĩ.
+         - ----------------------------------------
+
+********************************************************************************
+📁 [PARENT CHUNK #4] (Tổng: 10)
+   - Parent ID:     a3fa7b2d-9a0d-4bab-8145-291ce345c56c
+   - Path:          4. Thời gian đào tạo
+   - Level:         PARENT
+   - Tokens Est:    ~63
+   - Program Level: tien_si (Tiến sĩ)
+   - Valid From:    2026-01-05 00:00:00
+   - Academic Year: 2026
+   - Nội dung (Preview): # THÔNG BÁO ## Về việc tuyển sinh trình độ tiến sĩ đợt 1 năm 2026 [Nguồn: tuyển sinh trình độ tiến sĩ đợt 1 năm 2026.md] [Mục: 4. Thời gian đào tạo]  03 (ba) năm đối với nghiên cứu sinh (NCS) đã có bằ...
+
+      📍 [CHILD CHUNK #1 / 1]
+         - Child ID:     c122277f-bdb4-4ac0-9193-5efb97b357e0
+         - Parent ID Ref:a3fa7b2d-9a0d-4bab-8145-291ce345c56c  <-- Trỏ về Parent!
+         - Level:        child
+         - Tokens:       ~63
+         - ----------------------------------------
+            # THÔNG BÁO
+            ## Về việc tuyển sinh trình độ tiến sĩ đợt 1 năm 2026
+            [Nguồn: tuyển sinh trình độ tiến sĩ đợt 1 năm 2026.md]
+            [Mục: 4. Thời gian đào tạo]
+            
+            03 (ba) năm đối với nghiên cứu sinh (NCS) đã có bằng thạc sĩ; 04 (bốn) năm đối với NCS có bằng đại học.
+         - ----------------------------------------
+
+********************************************************************************
+📁 [PARENT CHUNK #5] (Tổng: 10)
+   - Parent ID:     add2c45b-6ffa-4787-be02-c53a54e7cec0
+   - Path:          5. Hồ sơ dự tuyển
+   - Level:         PARENT
+   - Tokens Est:    ~293
+   - Program Level: tien_si (Tiến sĩ)
+   - Valid From:    2026-01-05 00:00:00
+   - Academic Year: 2026
+   - Nội dung (Preview): # THÔNG BÁO ## Về việc tuyển sinh trình độ tiến sĩ đợt 1 năm 2026 [Nguồn: tuyển sinh trình độ tiến sĩ đợt 1 năm 2026.md] [Mục: 5. Hồ sơ dự tuyển]  a) Đơn xin dự tuyển *(theo mẫu do Trường quy định)*. ...
+
+      📍 [CHILD CHUNK #1 / 1]
+         - Child ID:     66333d3d-a83b-4341-a19f-9428b378b382
+         - Parent ID Ref:add2c45b-6ffa-4787-be02-c53a54e7cec0  <-- Trỏ về Parent!
+         - Level:        child
+         - Tokens:       ~293
+         - ----------------------------------------
+            # THÔNG BÁO
+            ## Về việc tuyển sinh trình độ tiến sĩ đợt 1 năm 2026
+            [Nguồn: tuyển sinh trình độ tiến sĩ đợt 1 năm 2026.md]
+            [Mục: 5. Hồ sơ dự tuyển]
+            
+            a) Đơn xin dự tuyển *(theo mẫu do Trường quy định)*. b) Lý lịch khoa học *(theo mẫu do Trường quy định)*. c) Bản sao có chứng thực văn bằng thạc sĩ, hoặc đại học (loại giỏi) và bảng điểm thạc sĩ hoặc bản sao kèm theo bản chính để đối chiếu (trong trường hợp nộp hồ sơ trực tiếp). d) Minh chứng về kinh nghiệm nghiên cứu quy định tại Khoản 3.1, Mục 3 của Thông báo này. đ) Đề cương nghiên cứu và dự kiến kế hoạch học tập, nghiên cứu toàn khóa *(theo mẫu do Trường quy định, 06 bộ)*. e) Minh chứng về trình độ ngoại ngữ theo Khoản 3.2, Mục 3 của Thông báo này. g) Bản sao có chứng thực Giấy chứng nhận của Cục Quản lý chất lượng về công nhận văn bằng đối với những bằng thạc sĩ, bằng đại học do cơ sở đào tạo nước ngoài cấp. h) 01 Bản sao Căn cước công dân/Hộ chiếu bản sao y chứng thực hoặc bản sao kèm theo bản chính để đối chiếu
+            - Link tải Mẫu hồ sơ dự tuyển NCS: https://daotaosdh.ufm.edu.vn/vi/bieu-mau-hoc-vu/mau-ho-so-xet-tuyen-nghien-cuu-sinh
+            - Link đăng ký Tuyển sinh NCS trực tuyến: https://forms.gle/Wb8j3knjWFfkQgW39
+         - ----------------------------------------
+
+================================================================================
+🏁 Đã xử lý 5 Parent Chunks, sinh ra 5 Child Chunks.

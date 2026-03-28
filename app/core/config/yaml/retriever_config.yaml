@@ -1,0 +1,48 @@
+# ============================================================
+# RETRIEVER CONFIG — Hybrid Search (Cosine + BM25 + RRF)
+# Nguồn sự thật duy nhất cho RAG Node
+# ============================================================
+
+retriever:
+  # ── Cấu hình Vector Search (pgvector Cosine Similarity) ──
+  vector_search:
+    enabled: true
+    top_k: 20                         # Lấy top 20 chunks từ HNSW index
+    similarity_threshold: 0.85        # Ngưỡng tin cậy (cosine > 0.85)
+    use_multi_query: true            # true = dùng tất cả embeddings (multi-query boost)
+
+  # ── Cấu hình BM25 Full-Text Search (Postgres tsvector) ──
+  bm25_search:
+    enabled: true
+    top_k: 20                         # Lấy top 20 chunks từ FTS
+    ts_config: "simple"               # Config tokenizer Postgres (simple = không stemming)
+    use_stored_tsvector: true        # true = dùng cột content_tsvector (cần chạy migration)
+
+  # ── Reciprocal Rank Fusion (RRF) ──
+  rrf:
+    k: 60                             # Hằng số RRF: score = 1 / (k + rank)
+                                      # k=60 là giá trị chuẩn paper gốc
+
+  # ── Parent Chunk Retrieval ──
+  parent_retrieval:
+    top_parents: 5                    # Lấy đúng 5 Parent Chunks duy nhất
+    max_parent_chars: 8000            # Giới hạn tổng ký tự cho toàn bộ context
+    include_metadata: true            # Gắn section_path, program_name vào context
+
+  # ── Metadata Filter ──
+  metadata_filter:
+    filter_program_level: true        # Bật/tắt filter bậc học (thac_si/tien_si/dai_hoc)
+    filter_program_name: false        # Bật/tắt filter ngành (ILIKE match) — tương lai
+
+  # ── Database Connection ──
+  db:
+    pool_min: 1
+    pool_max: 5
+    connect_timeout: 5                # Giây
+    query_timeout: 10                 # Giây
+
+  # ── Filters ──
+  filters:
+    only_active: true                 # Chỉ lấy chunks có is_active = TRUE
+    academic_year: null               # Set "2025-2026" để chỉ lấy năm cụ thể (null = tất cả)
+

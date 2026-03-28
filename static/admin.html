@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UFM Admin — Nạp Dữ Liệu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface-hover: #22263a;
+      --border: #2a2e3f;
+      --primary: #6c5ce7;
+      --primary-hover: #7e6ff0;
+      --accent: #00cec9;
+      --danger: #ff7675;
+      --success: #00b894;
+      --warn: #fdcb6e;
+      --text: #e2e8f0;
+      --text-dim: #8892a4;
+      --radius: 12px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, #1a1d27 0%, #2d1b69 100%);
+      padding: 24px 32px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .header h1 { font-size: 22px; font-weight: 700; }
+    .header h1 span { color: var(--primary); }
+    .header .user-info { display: flex; align-items: center; gap: 12px; }
+    .header .badge {
+      background: var(--primary); padding: 4px 12px; border-radius: 20px;
+      font-size: 12px; font-weight: 600;
+    }
+    .logout-btn {
+      background: transparent; border: 1px solid var(--border); color: var(--text-dim);
+      padding: 6px 16px; border-radius: 8px; cursor: pointer; font-size: 13px;
+      transition: all .2s;
+    }
+    .logout-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* ── Layout ── */
+    .container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+
+    /* ── Login Card ── */
+    .login-card, .upload-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      animation: fadeIn .3s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+    .card-title { font-size: 18px; font-weight: 600; margin-bottom: 24px; }
+    .card-title .icon { margin-right: 8px; }
+
+    /* ── Form Elements ── */
+    .form-group { margin-bottom: 20px; }
+    .form-group label {
+      display: block; font-size: 13px; font-weight: 500; color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+    .form-group label .optional {
+      color: var(--text-dim); font-weight: 400; opacity: .6;
+    }
+    .form-input {
+      width: 100%; padding: 10px 14px; background: var(--bg);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-size: 14px; font-family: inherit;
+      transition: border-color .2s;
+    }
+    .form-input:focus { outline: none; border-color: var(--primary); }
+    .form-input::placeholder { color: var(--text-dim); opacity: .5; }
+    select.form-input { cursor: pointer; }
+    select.form-input option { background: var(--bg); }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    @media (max-width: 640px) { .form-row { grid-template-columns: 1fr; } }
+
+    .hint {
+      font-size: 11px; color: var(--text-dim); margin-top: 4px; opacity: .7;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 24px; border: none; border-radius: 8px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      font-family: inherit; transition: all .2s;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .btn-danger { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
+    .btn-danger:hover { background: rgba(255,118,117,.1); }
+    .btn-sm { padding: 6px 14px; font-size: 12px; }
+
+    /* ── Drop Zone ── */
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 48px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .25s;
+      position: relative;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--primary);
+      background: rgba(108,92,231,.06);
+    }
+    .drop-zone .icon { font-size: 40px; margin-bottom: 12px; display: block; }
+    .drop-zone .title { font-size: 15px; font-weight: 500; }
+    .drop-zone .subtitle { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+    .drop-zone input[type=file] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer;
+    }
+
+    /* ── File List ── */
+    .file-list { margin-top: 16px; }
+    .file-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px; background: var(--bg); border-radius: 8px;
+      margin-bottom: 8px; font-size: 13px;
+      animation: fadeIn .2s ease;
+    }
+    .file-item .name { font-weight: 500; }
+    .file-item .size { color: var(--text-dim); }
+    .file-item .remove {
+      background: none; border: none; color: var(--danger); cursor: pointer;
+      font-size: 18px; padding: 0 4px;
+    }
+
+    /* ── Task Status ── */
+    .tasks-section { margin-top: 32px; }
+    .task-card {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px 18px; margin-bottom: 10px;
+      animation: fadeIn .3s ease;
+    }
+    .task-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .task-file { font-weight: 600; font-size: 14px; }
+    .task-status {
+      padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .5px;
+    }
+    .task-status.pending { background: rgba(253,203,110,.15); color: var(--warn); }
+    .task-status.validating, .task-status.chunking,
+    .task-status.embedding, .task-status.inserting {
+      background: rgba(108,92,231,.15); color: var(--primary);
+    }
+    .task-status.completed { background: rgba(0,184,148,.15); color: var(--success); }
+    .task-status.failed { background: rgba(255,118,117,.15); color: var(--danger); }
+    .task-status.skipped { background: rgba(136,146,164,.15); color: var(--text-dim); }
+    .task-message { font-size: 12px; color: var(--text-dim); }
+    .task-chunks { font-size: 12px; color: var(--accent); margin-top: 4px; }
+
+    /* ── Progress bar ── */
+    .progress-bar {
+      height: 3px; background: var(--border); border-radius: 2px; margin-top: 8px;
+      overflow: hidden;
+    }
+    .progress-bar .fill {
+      height: 100%; border-radius: 2px; transition: width .5s ease;
+    }
+    .progress-bar .fill.pending { width: 10%; background: var(--warn); }
+    .progress-bar .fill.validating { width: 25%; background: var(--primary); }
+    .progress-bar .fill.chunking { width: 45%; background: var(--primary); }
+    .progress-bar .fill.embedding { width: 70%; background: var(--primary); }
+    .progress-bar .fill.inserting { width: 90%; background: var(--accent); }
+    .progress-bar .fill.completed { width: 100%; background: var(--success); }
+    .progress-bar .fill.failed { width: 100%; background: var(--danger); }
+    .progress-bar .fill.skipped { width: 100%; background: var(--text-dim); }
+
+    /* ── Alert ── */
+    .alert {
+      padding: 12px 16px; border-radius: 8px; font-size: 13px;
+      margin-bottom: 16px; display: none;
+    }
+    .alert.error { display: block; background: rgba(255,118,117,.1); border: 1px solid var(--danger); color: var(--danger); }
+    .alert.success { display: block; background: rgba(0,184,148,.1); border: 1px solid var(--success); color: var(--success); }
+
+    /* ── Spinner ── */
+    .spinner {
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,.2);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin .6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════ HEADER ═══════════ -->
+<div class="header" id="appHeader" style="display:none">
+  <h1>📚 UFM <span>Admin</span> — Nạp Dữ Liệu</h1>
+  <div class="user-info">
+    <span class="badge" id="adminName">Admin</span>
+    <button class="logout-btn" onclick="logout()">Đăng xuất</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ═══════════ LOGIN ═══════════ -->
+  <div class="login-card" id="loginCard">
+    <div class="card-title"><span class="icon">🔐</span>Đăng nhập Admin</div>
+    <div id="loginAlert" class="alert"></div>
+    <div class="form-group">
+      <label>Tên đăng nhập</label>
+      <input class="form-input" id="loginUser" placeholder="admin" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label>Mật khẩu</label>
+      <input class="form-input" id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn btn-primary" id="loginBtn" onclick="login()">
+      Đăng nhập
+    </button>
+  </div>
+
+  <!-- ═══════════ UPLOAD ═══════════ -->
+  <div class="upload-card" id="uploadCard" style="display:none">
+    <div class="card-title"><span class="icon">📤</span>Upload & Nạp Dữ Liệu VectorDB</div>
+
+    <div id="uploadAlert" class="alert"></div>
+
+    <!-- ── Metadata Fields ── -->
+    <div class="form-row">
+      <div class="form-group">
+        <label>Bậc đào tạo <span class="optional">(tùy chọn)</span></label>
+        <select class="form-input" id="metaLevel">
+          <option value="">— Tự nhận diện —</option>
+          <option value="dai_hoc">Đại học</option>
+          <option value="thac_si">Thạc sĩ</option>
+          <option value="tien_si">Tiến sĩ</option>
+        </select>
+        <div class="hint">Để trống → hệ thống tự đọc từ file header</div>
+      </div>
+      <div class="form-group">
+        <label>Ngành đào tạo <span class="optional">(tùy chọn)</span></label>
+        <input class="form-input" id="metaProgram" placeholder="VD: Marketing, QTKD...">
+        <div class="hint">Để trống → tự trích từ file hoặc null</div>
+      </div>
+      <div class="form-group">
+        <label>Năm học <span class="optional">(tùy chọn)</span></label>
+        <input class="form-input" id="metaYear" placeholder="VD: 2025-2026">
+        <div class="hint">Để trống → null (áp dụng cho mọi năm)</div>
+      </div>
+    </div>
+
+    <!-- ── Drop Zone ── -->
+    <div class="drop-zone" id="dropZone">
+      <span class="icon">📁</span>
+      <div class="title">Kéo thả file .md vào đây</div>
+      <div class="subtitle">hoặc click để chọn file (tối đa 10MB/file)</div>
+      <input type="file" id="fileInput" accept=".md,.markdown" multiple>
+    </div>
+
+    <!-- ── File List ── -->
+    <div class="file-list" id="fileList"></div>
+
+    <!-- ── Submit ── -->
+    <div style="margin-top: 20px; display: flex; gap: 12px; align-items: center;">
+      <button class="btn btn-primary" id="submitBtn" onclick="uploadFiles()" disabled>
+        🚀 Nạp dữ liệu
+      </button>
+      <button class="btn btn-danger btn-sm" id="clearBtn" onclick="clearFiles()" style="display:none">
+        Xóa tất cả
+      </button>
+    </div>
+
+    <!-- ── Task Status ── -->
+    <div class="tasks-section" id="tasksSection" style="display:none">
+      <div class="card-title" style="margin-top:16px"><span class="icon">📊</span>Trạng thái xử lý</div>
+      <div id="tasksList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '/api/v1/admin';
+let TOKEN = localStorage.getItem('admin_token') || '';
+let selectedFiles = [];
+let pollingIntervals = {};
+
+// ═══════════ AUTO LOGIN ═══════════
+if (TOKEN) { showUploadUI(); loadTasks(); }
+
+// ═══════════ LOGIN ═══════════
+async function login() {
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const alert = document.getElementById('loginAlert');
+  const btn = document.getElementById('loginBtn');
+
+  if (!user || !pass) { showAlert(alert, 'error', 'Vui lòng nhập đầy đủ.'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Đang xác thực...';
+
+  try {
+    const form = new FormData();
+    form.append('username', user);
+    form.append('password', pass);
+
+    const res = await fetch(`${API}/login`, { method: 'POST', body: form });
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.detail || 'Login thất bại');
+
+    TOKEN = data.access_token;
+    localStorage.setItem('admin_token', TOKEN);
+    document.getElementById('adminName').textContent = user;
+    showUploadUI();
+    loadTasks();
+  } catch (e) {
+    showAlert(alert, 'error', e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Đăng nhập';
+  }
+}
+
+function logout() {
+  TOKEN = '';
+  localStorage.removeItem('admin_token');
+  Object.values(pollingIntervals).forEach(clearInterval);
+  pollingIntervals = {};
+  document.getElementById('appHeader').style.display = 'none';
+  document.getElementById('uploadCard').style.display = 'none';
+  document.getElementById('loginCard').style.display = 'block';
+}
+
+function showUploadUI() {
+  document.getElementById('loginCard').style.display = 'none';
+  document.getElementById('appHeader').style.display = 'flex';
+  document.getElementById('uploadCard').style.display = 'block';
+}
+
+// ═══════════ FILE HANDLING ═══════════
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('dragover');
+  addFiles(e.dataTransfer.files);
+});
+fileInput.addEventListener('change', () => addFiles(fileInput.files));
+
+function addFiles(fileList) {
+  for (const f of fileList) {
+    if (!selectedFiles.find(sf => sf.name === f.name)) {
+      selectedFiles.push(f);
+    }
+  }
+  renderFileList();
+}
+
+function removeFile(idx) {
+  selectedFiles.splice(idx, 1);
+  renderFileList();
+}
+
+function clearFiles() {
+  selectedFiles = [];
+  renderFileList();
+}
+
+function renderFileList() {
+  const list = document.getElementById('fileList');
+  const submitBtn = document.getElementById('submitBtn');
+  const clearBtn = document.getElementById('clearBtn');
+
+  if (!selectedFiles.length) {
+    list.innerHTML = '';
+    submitBtn.disabled = true;
+    clearBtn.style.display = 'none';
+    return;
+  }
+
+  submitBtn.disabled = false;
+  clearBtn.style.display = 'inline-flex';
+
+  list.innerHTML = selectedFiles.map((f, i) => `
+    <div class="file-item">
+      <span class="name">📄 ${f.name}</span>
+      <span class="size">${(f.size / 1024).toFixed(1)} KB</span>
+      <button class="remove" onclick="removeFile(${i})" title="Xóa">✕</button>
+    </div>
+  `).join('');
+}
+
+// ═══════════ UPLOAD ═══════════
+async function uploadFiles() {
+  const alert = document.getElementById('uploadAlert');
+  const btn = document.getElementById('submitBtn');
+  alert.className = 'alert';
+
+  if (!selectedFiles.length) return;
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Đang tải lên...';
+
+  try {
+    const form = new FormData();
+    selectedFiles.forEach(f => form.append('files', f));
+
+    // Metadata (empty string → backend sẽ fallback null)
+    const level = document.getElementById('metaLevel').value;
+    const program = document.getElementById('metaProgram').value.trim();
+    const year = document.getElementById('metaYear').value.trim();
+
+    if (level) form.append('program_level', level);
+    if (program) form.append('program_name', program);
+    if (year) form.append('academic_year', year);
+
+    const res = await fetch(`${API}/ingest`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${TOKEN}` },
+      body: form,
+    });
+
+    if (res.status === 401) { logout(); return; }
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Upload thất bại');
+
+    showAlert(alert, 'success',
+      `✅ Đã gửi ${data.accepted} file, ${data.rejected} bị từ chối`);
+
+    // Start polling cho các task
+    data.tasks.filter(t => t.task_id).forEach(t => startPolling(t.task_id, t.file_name));
+    loadTasks();
+
+    selectedFiles = [];
+    renderFileList();
+  } catch (e) {
+    showAlert(alert, 'error', e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '🚀 Nạp dữ liệu';
+  }
+}
+
+// ═══════════ TASK POLLING ═══════════
+async function loadTasks() {
+  try {
+    const res = await fetch(`${API}/tasks`, {
+      headers: { 'Authorization': `Bearer ${TOKEN}` },
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    renderTasks(data.tasks);
+
+    // Resume polling for active tasks
+    data.tasks.forEach(t => {
+      if (!['completed','failed','skipped'].includes(t.status)) {
+        startPolling(t.task_id, t.file_name);
+      }
+    });
+  } catch (e) { /* silent */ }
+}
+
+function startPolling(taskId, fileName) {
+  if (pollingIntervals[taskId]) return;
+
+  pollingIntervals[taskId] = setInterval(async () => {
+    try {
+      const res = await fetch(`${API}/tasks/${taskId}`, {
+        headers: { 'Authorization': `Bearer ${TOKEN}` },
+      });
+      if (!res.ok) { clearInterval(pollingIntervals[taskId]); delete pollingIntervals[taskId]; return; }
+
+      const task = await res.json();
+      updateTaskCard(task);
+
+      if (['completed','failed','skipped'].includes(task.status)) {
+        clearInterval(pollingIntervals[taskId]);
+        delete pollingIntervals[taskId];
+      }
+    } catch (e) { /* silent */ }
+  }, 2000);
+}
+
+function renderTasks(tasks) {
+  const section = document.getElementById('tasksSection');
+  const list = document.getElementById('tasksList');
+
+  if (!tasks.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+
+  list.innerHTML = tasks.map(t => taskCardHTML(t)).join('');
+}
+
+function taskCardHTML(t) {
+  return `
+    <div class="task-card" id="task-${t.task_id}">
+      <div class="task-header">
+        <span class="task-file">📄 ${t.file_name}</span>
+        <span class="task-status ${t.status}">${statusLabel(t.status)}</span>
+      </div>
+      <div class="task-message">${t.message}</div>
+      ${t.chunks_count ? `<div class="task-chunks">📊 ${t.chunks_count} chunks</div>` : ''}
+      <div class="progress-bar"><div class="fill ${t.status}"></div></div>
+    </div>
+  `;
+}
+
+function updateTaskCard(t) {
+  let card = document.getElementById(`task-${t.task_id}`);
+  if (card) {
+    card.outerHTML = taskCardHTML(t);
+  } else {
+    // Prepend new card
+    const list = document.getElementById('tasksList');
+    const section = document.getElementById('tasksSection');
+    section.style.display = 'block';
+    list.insertAdjacentHTML('afterbegin', taskCardHTML(t));
+  }
+}
+
+function statusLabel(s) {
+  const map = {
+    pending: '⏳ Chờ xử lý', validating: '🔍 Kiểm tra',
+    chunking: '✂️ Chia chunks', embedding: '🧠 Embedding',
+    inserting: '💾 Ghi DB', completed: '✅ Hoàn tất',
+    failed: '❌ Lỗi', skipped: '⏭️ Bỏ qua (trùng)',
+  };
+  return map[s] || s;
+}
+
+// ═══════════ UTILS ═══════════
+function showAlert(el, type, msg) {
+  el.className = `alert ${type}`;
+  el.textContent = msg;
+  setTimeout(() => { el.className = 'alert'; }, 8000);
+}
+
+// Enter to login
+document.getElementById('loginPass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') login();
+});
+</script>
+</body>
+</html>

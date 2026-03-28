@@ -1,0 +1,49 @@
+# ============================================================
+# .dockerignore — Không copy vào Docker image
+# ============================================================
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+
+# Python cache
+__pycache__
+*.py[cod]
+*.egg-info
+.eggs
+
+# Environments
+.venv
+venv
+env
+ENV
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Docker
+docker-compose*.yml
+Dockerfile
+.dockerignore
+
+# Testing
+.pytest_cache
+htmlcov
+.coverage*
+coverage.xml
+*.xml
+*.log
+
+# Database backups (không cần trong image)
+database/backups
+
+# Data thô (mount riêng bằng volume)
+data/
+
+# Agents/Gemini config
+.agents
+.gemini

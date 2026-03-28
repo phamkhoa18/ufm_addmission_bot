@@ -1,0 +1,55 @@
+# ============================================================
+# GUARDIAN PIPELINE CONFIG — Chỉ chứa Logic Filter (phi-Model)
+# File: app/core/config/yaml/guardian_config.yaml
+#
+# ⚠️ Model configs → đã chuyển sang models_config.yaml
+# ⚠️ Fallback messages → đã chuyển sang prompts_config.yaml
+# ⚠️ File này CHỈ còn: regex patterns, teencode map, thresholds
+# ============================================================
+
+# ----------------------------------------------------------
+# LỚP 0: Input Validation (Gatekeeper - Chống DoS)
+# ----------------------------------------------------------
+input_validation:
+  max_input_chars: 3000             # Hard limit chống DoS (CHẶN cứng nếu vượt)
+  summarize_threshold: 1500         # >= threshold → gọi LLM tóm tắt trước khi xử lý
+
+# ----------------------------------------------------------
+# LỚP 1: Keyword Filter & Normalization
+# ----------------------------------------------------------
+keyword_filter:
+  banned_regex_patterns:
+    - 'ch[íi]nh\s*tr[ịi]'
+    - 't[ôo]n\s*gi[áa]o'
+    - 'b[ạa]o\s*l[ựu]c'
+    - 'gi[ếe]t'
+    # 'tự tử' đã chuyển sang Contextual Guard (Layer 2b Qwen) để phân biệt
+    # sinh viên cần hỗ trợ tâm lý vs. nội dung độc hại thực sự
+    - 'h[a@4]ck'
+    - 'c[ờo]\s*b[ạa]c'
+    - 'ma\s*t[úu]y'
+
+  # Regex chống Injection/Jailbreak sơ đẳng (0ms)
+  # CHỈ GIỮ các từ khóa kỹ thuật KHÔNG BAO GIỜ xuất hiện trong câu hỏi tuyển sinh bình thường
+  injection_regex_patterns:
+    - 'ignore.*(instruction|rule|prompt)'
+    - 'system\s*prompt'
+    - 'api[\s_-]*key|secret[\s_-]*key'
+    - 'jailbreak|bypass|override'
+    - '\bsudo\b|\broot\b'
+
+  teencode_map:
+    ko: "không"
+    k: "không"
+    hk: "không"
+    dc: "được"
+    đc: "được"
+    trc: "trước"
+    ns: "nói"
+    ntn: "như thế nào"
+    lm: "làm"
+    mk: "mình"
+    mn: "mọi người"
+    vs: "với"
+    r: "rồi"
+    j: "gì"

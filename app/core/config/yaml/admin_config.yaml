@@ -1,0 +1,36 @@
+# ============================================================
+# ADMIN API CONFIG — Cấu hình endpoint Admin (Nạp dữ liệu)
+# ============================================================
+
+admin:
+  # ── JWT Authentication ──
+  jwt:
+    # SECRET_KEY: Mặc định đọc từ biến môi trường ADMIN_JWT_SECRET
+    # Nếu không có → dùng giá trị dưới đây (CHỈ cho dev)
+    secret_key_env: "ADMIN_JWT_SECRET"
+    algorithm: "HS256"
+    access_token_expire_minutes: 480    # Token hết hạn sau 8 giờ
+
+  # ── Admin Credentials ──
+  # Username/Password để login lấy JWT token
+  # Mặc định đọc từ env: ADMIN_USERNAME, ADMIN_PASSWORD
+  credentials:
+    username_env: "ADMIN_USERNAME"
+    password_env: "ADMIN_PASSWORD"
+    default_username: "ufm_admin"       # Fallback cho dev (KHÔNG dùng production)
+    default_password: "ufm_admin_2026"  # Fallback cho dev (KHÔNG dùng production)
+
+  # ── Rate Limiting ──
+  rate_limit:
+    max_requests_per_minute: 10         # Tối đa 10 request/phút/IP
+    max_file_size_mb: 10                # File tối đa 10MB
+    allowed_extensions:                 # Chỉ chấp nhận các đuôi file này
+      - ".md"
+      - ".markdown"
+
+  # ── Ingestion Pipeline ──
+  ingestion:
+    embedding_model: "baai/bge-m3"
+    embedding_dimensions: 1024
+    embedding_batch_size: 30
+    max_concurrent_tasks: 3             # Tối đa 3 task nạp song song
